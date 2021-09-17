@@ -3,6 +3,16 @@ type CDODeployedEvent @entity {
   proxy: Bytes!
 }
 
+type CDO @entity {
+  id: ID!
+  AATrancheToken: Bytes!
+  BBTrancheToken: Bytes!
+
+  underlyingToken: Bytes!
+  strategy: Bytes!
+  strategyToken: Bytes!
+}
+
 type depositAAEvent @entity {
   id: ID!
 

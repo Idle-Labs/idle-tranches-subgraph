@@ -2,7 +2,7 @@
   "name": "idle-tranches",
   "license": "UNLICENSED",
   "scripts": {
-    "local-hardhat": "cd idle-tranches && npx hardhat node --hostname 0.0.0.0",
+    "local-hardhat": "cd idle-tranches && npx hardhat node --hostname 0.0.0.0 --verbose",
     "local-graph": "cd graph-node/docker && docker-compose up",
     "codegen": "graph codegen",
     "build": "graph build",

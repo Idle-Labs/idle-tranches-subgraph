@@ -15,17 +15,20 @@ dataSources:
       language: wasm/assemblyscript
       entities:
         - CDODeployed
+        - CDO
       abis:
         - name: CDOFactory
           file: ./abis/CDOFactory.json
+        - name: IdleCDO
+          file: ./abis/IdleCDO.json
       eventHandlers:
         - event: CDODeployed(address)
           handler: handleCDODeployed
       file: ./src/mappings/CDOFactory.ts
   
 templates:
-  - name: IdleCDO
-    kind: ethereum/contract
+  - kind: ethereum/contract
+    name: IdleCDO
     network: mainnet
     source:
       abi: IdleCDO
@@ -35,8 +38,23 @@ templates:
       language: wasm/assemblyscript
       file: ./src/mappings/idleCDO.ts
       entities:
-        - DepositAA
+        - CDO
       abis:
         - name: IdleCDO
           file: ./abis/IdleCDO.json
-      
+  - kind: ethereum/contract
+    name: IdleCDOTranche
+    network: mainnet
+    source:
+      abi: IdleCDOTranche
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      file: ./src/mappings/idleCDOTranche.ts
+      entities:
+        - depositAAEvent
+        - CDO
+      abis:
+        - name: IdleCDOTranche
+          file: ./abis/IdleCDOTranche.json
