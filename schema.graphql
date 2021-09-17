@@ -1,0 +1,9 @@
+type CDODeployedEvent @entity {
+  id: ID!
+  proxy: Bytes!
+}
+
+type depositAAEvent @entity {
+  id: ID!
+
+}

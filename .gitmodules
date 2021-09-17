@@ -1,0 +1,6 @@
+[submodule "idle-tranches"]
+	path = idle-tranches
+	url = git@github.com:Idle-Labs/idle-tranches.git
+[submodule "graph-node"]
+	path = graph-node
+	url = https://github.com/graphprotocol/graph-node/
