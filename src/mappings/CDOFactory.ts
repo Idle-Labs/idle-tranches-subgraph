@@ -2,7 +2,7 @@ import { Address, BigInt, DataSourceContext } from "@graphprotocol/graph-ts"
 import { CDODeployed } from "../../generated/CDOFactory/CDOFactory"
 import { IdleCDO as IdleCDOContract } from "../../generated/templates/IdleCDO/IdleCDO"
 import { IdleCDO, IdleCDOTranche } from "../../generated/templates"
-import { CDODeployedEvent, CDO } from "../../generated/schema"
+import { CDODeployedEvent, CDO, Tranche } from "../../generated/schema"
 
 export function handleCDODeployed(event: CDODeployed): void {
   let entity = CDODeployedEvent.load(event.transaction.hash.toHex())
@@ -14,28 +14,41 @@ export function handleCDODeployed(event: CDODeployed): void {
     let CDOContract = IdleCDOContract.bind(CDOAddress)
 
     let context = new DataSourceContext();
-
-    context.setBytes("CDO", CDOAddress)
-    context.setBytes("AATranche", CDOContract.AATranche())
-    context.setBytes("BBTranche", CDOContract.BBTranche())
-    context.setBytes("underlyingToken", CDOContract.token())
-    context.setBytes("strategy", CDOContract.strategy())
-    context.setBytes("strategyToken", CDOContract.strategyToken())
     
+    let AATrancheAddress = CDOContract.AATranche();
+    let BBTrancheAddress = CDOContract.BBTranche();
+    let CDOUnderlyingToken = CDOContract.token();
+    let CDOStrategy = CDOContract.strategy();
+    let CDOStrategyToken = CDOContract.strategyToken();
     
     let CDOEntity = new CDO(CDOAddress.toHex())
+    
+    CDOEntity.underlyingToken = CDOUnderlyingToken;
+    CDOEntity.AATrancheToken = AATrancheAddress.toHexString();
+    CDOEntity.BBTrancheToken = BBTrancheAddress.toHexString();
+    CDOEntity.strategy = CDOStrategy;
+    CDOEntity.strategyToken = CDOStrategyToken;
+    CDOEntity.save()
 
-    CDOEntity.AATrancheToken = context.getBytes("AATranche");
-    CDOEntity.BBTrancheToken = context.getBytes("BBTranche");
-    CDOEntity.underlyingToken = context.getBytes("underlyingToken")
-    CDOEntity.strategy = context.getBytes("strategy")
-    CDOEntity.strategyToken = context.getBytes("strategyToken")
+    let AATranche = new Tranche(AATrancheAddress.toHexString());
+    AATranche.type = "AATranche";
+    AATranche.CDO = CDOEntity.id;
+    AATranche.totalSupply = BigInt.fromI32(0);
+    AATranche.save();
+
+    let BBTranche = new Tranche(BBTrancheAddress.toHexString());
+    BBTranche.type = "BBTranche";
+    BBTranche.CDO = CDOEntity.id;
+    BBTranche.totalSupply = BigInt.fromI32(0);
+    BBTranche.save();
+
+    context.setBytes("CDO", CDOAddress)
+    context.setBytes("AATranche", AATrancheAddress)
+    context.setBytes("BBTranche", BBTrancheAddress)
 
     IdleCDO.createWithContext(CDOAddress, context);
-    IdleCDOTranche.createWithContext(context.getBytes("AATranche"), context)
-    IdleCDOTranche.createWithContext(context.getBytes("BBTranche"), context)
-
-    CDOEntity.save()
+    IdleCDOTranche.createWithContext(AATrancheAddress as Address, context)
+    IdleCDOTranche.createWithContext(BBTrancheAddress as Address, context)
   }
   entity.proxy = CDOAddress;
   entity.save()

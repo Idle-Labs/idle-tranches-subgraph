@@ -5,15 +5,51 @@ type CDODeployedEvent @entity {
 
 type CDO @entity {
   id: ID!
-  AATrancheToken: Bytes!
-  BBTrancheToken: Bytes!
+  AATrancheToken: Tranche!
+  BBTrancheToken: Tranche!
 
   underlyingToken: Bytes!
   strategy: Bytes!
   strategyToken: Bytes!
 }
 
+enum TrancheType {
+  AATranche
+  BBTranche
+}
+
+type Tranche @entity {
+  id: ID!
+  type: TrancheType!
+  CDO: CDO!
+
+  totalSupply: BigInt!
+}
+
 type depositAAEvent @entity {
   id: ID!
+  tranche: Tranche!
+  amount: BigInt!
+  sender: Bytes!
+}
 
+type depositBBEvent @entity {
+  id: ID!
+  tranche: Tranche!
+  amount: BigInt!
+  sender: Bytes!
+}
+
+type withdrawAAEvent @entity {
+  id: ID!
+  tranche: Tranche!
+  amount: BigInt!
+  sender: Bytes!
+}
+
+type withdrawBBEvent @entity {
+  id: ID!
+  tranche: Tranche!
+  amount: BigInt!
+  sender: Bytes!
 }
