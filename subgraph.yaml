@@ -6,9 +6,9 @@ dataSources:
     name: CDOFactory
     network: mainnet
     source:
-      address: "0x7969c5eD335650692Bc04293B07F5BF2e7A673C0"
+      address: "0x3c9916bb9498f637e2fa86c2028e26275dc9a631"
       abi: CDOFactory
-      startBlock: 13147166
+      startBlock: 13244388
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -39,6 +39,7 @@ templates:
       file: ./src/mappings/idleCDO.ts
       entities:
         - CDO
+        - Tranche
       abis:
         - name: IdleCDO
           file: ./abis/IdleCDO.json
@@ -53,8 +54,14 @@ templates:
       language: wasm/assemblyscript
       file: ./src/mappings/idleCDOTranche.ts
       entities:
-        - depositAAEvent
         - CDO
+        - Tranche
+        - depositAAEvent
+        - depositBBEvent
+        - withdrawAAEvent
+        - withdrawBBEvent
+        - transferAA
+        - transferBB
       abis:
         - name: IdleCDOTranche
           file: ./abis/IdleCDOTranche.json

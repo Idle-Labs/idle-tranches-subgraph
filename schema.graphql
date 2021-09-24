@@ -53,3 +53,23 @@ type withdrawBBEvent @entity {
   amount: BigInt!
   sender: Bytes!
 }
+
+type transferAA @entity {
+  id: ID!
+  tranche: Tranche!
+  amount: BigInt!
+  sender: Bytes!
+
+  from: Bytes!
+  to: Bytes!
+}
+
+type transferBB @entity {
+  id: ID!
+  tranche: Tranche!
+  amount: BigInt!
+  sender: Bytes!
+  
+  from: Bytes!
+  to: Bytes!
+}
