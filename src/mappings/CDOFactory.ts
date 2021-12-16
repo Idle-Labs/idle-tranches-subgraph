@@ -1,8 +1,8 @@
-import { Address, BigInt, DataSourceContext } from "@graphprotocol/graph-ts"
 import { CDODeployed } from "../../generated/CDOFactory/CDOFactory"
-import { IdleCDO as IdleCDOContract } from "../../generated/templates/IdleCDO/IdleCDO"
 import { IdleCDO, IdleCDOTranche } from "../../generated/templates"
-import { CDODeployedEvent, CDO, Tranche } from "../../generated/schema"
+import { Address, BigInt, DataSourceContext, log } from "@graphprotocol/graph-ts"
+import { CDODeployedEvent, CDO, Tranche, TrancheInfo } from "../../generated/schema"
+import { IdleCDO as IdleCDOContract } from "../../generated/templates/IdleCDO/IdleCDO"
 
 export function handleCDODeployed(event: CDODeployed): void {
   let entity = CDODeployedEvent.load(event.transaction.hash.toHex())
@@ -10,8 +10,8 @@ export function handleCDODeployed(event: CDODeployed): void {
   let CDOAddress = event.params.proxy;
 
   if (entity == null) {
-    entity = new CDODeployedEvent(event.transaction.from.toHex())
-    let CDOContract = IdleCDOContract.bind(CDOAddress)
+    entity = new CDODeployedEvent(event.transaction.from.toHex());
+    let CDOContract = IdleCDOContract.bind(CDOAddress);
 
     let context = new DataSourceContext();
     
@@ -30,17 +30,39 @@ export function handleCDODeployed(event: CDODeployed): void {
     CDOEntity.strategyToken = CDOStrategyToken;
     CDOEntity.save()
 
+    log.debug('Created CDO - address: {}, underlying: {}, AA: {}, BB: {}, strategy: {}, strategyToken: {}',[CDOAddress.toHexString(),CDOUnderlyingToken.toHexString(),AATrancheAddress.toHexString(),BBTrancheAddress.toHexString(),CDOStrategy.toHexString(),CDOStrategyToken.toHexString()]);
+
     let AATranche = new Tranche(AATrancheAddress.toHexString());
     AATranche.type = "AATranche";
     AATranche.CDO = CDOEntity.id;
     AATranche.totalSupply = BigInt.fromI32(0);
     AATranche.save();
 
+    // Insert AA Tranche Info point
+    const AATrancheVirtualPrice = CDOContract.virtualPrice(AATrancheAddress);
+    const TrancheInfoAA = new TrancheInfo(event.block.number.toString());
+    TrancheInfoAA.Tranche = AATranche.id;
+    TrancheInfoAA.totalSupply = BigInt.fromI32(0);
+    TrancheInfoAA.timeStamp = event.block.timestamp;
+    TrancheInfoAA.contractValue = BigInt.fromI32(0);
+    TrancheInfoAA.virtualPrice = AATrancheVirtualPrice;
+    TrancheInfoAA.save();
+
     let BBTranche = new Tranche(BBTrancheAddress.toHexString());
     BBTranche.type = "BBTranche";
     BBTranche.CDO = CDOEntity.id;
     BBTranche.totalSupply = BigInt.fromI32(0);
     BBTranche.save();
+
+    // Insert AA Tranche Info point
+    const BBTrancheVirtualPrice = CDOContract.virtualPrice(BBTrancheAddress);
+    const TrancheInfoBB = new TrancheInfo(event.block.number.toString());
+    TrancheInfoBB.Tranche = BBTranche.id;
+    TrancheInfoBB.totalSupply = BigInt.fromI32(0);
+    TrancheInfoBB.contractValue = BigInt.fromI32(0);
+    TrancheInfoBB.timeStamp = event.block.timestamp;
+    TrancheInfoBB.virtualPrice = BBTrancheVirtualPrice;
+    TrancheInfoBB.save();
 
     context.setBytes("CDO", CDOAddress)
     context.setBytes("AATranche", AATrancheAddress)

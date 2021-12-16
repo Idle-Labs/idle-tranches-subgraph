@@ -6,14 +6,14 @@
     "local-graph": "cd graph-node/docker && docker-compose up",
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ idle-finance/idle-tranches",
-    "create-local": "graph create --node http://localhost:8020/ idle-finance/idle-tranches",
-    "remove-local": "graph remove --node http://localhost:8020/ idle-finance/idle-tranches",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 --version-label v0.0.1 idle-finance/idle-tranches",
+    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ idle-tranches",
+    "create-local": "graph create --node http://localhost:8020/ idle-tranches",
+    "remove-local": "graph remove --node http://localhost:8020/ idle-tranches",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 --version-label v0.0.1 idle-tranches",
     "deploy-local-e2e": "npm run codegen && npm run build && npm run remove-local && npm run create-local && npm run deploy-local"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.21.1",
-    "@graphprotocol/graph-ts": "0.20.0"
+    "@graphprotocol/graph-ts": "0.22.0"
   }
 }

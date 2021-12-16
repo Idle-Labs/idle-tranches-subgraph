@@ -26,6 +26,15 @@ type Tranche @entity {
   totalSupply: BigInt!
 }
 
+type TrancheInfo @entity {
+  id: ID!
+  Tranche: Tranche!
+  timeStamp: BigInt!
+  totalSupply: BigInt!
+  virtualPrice: BigInt!
+  contractValue: BigInt!
+}
+
 type depositAAEvent @entity {
   id: ID!
   tranche: Tranche!
