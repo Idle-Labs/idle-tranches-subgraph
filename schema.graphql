@@ -35,6 +35,13 @@ type TrancheInfo @entity {
   contractValue: BigInt!
 }
 
+type LastState @entity {
+  id: ID!
+  CDOs: [CDO!]!
+  timeStamp: BigInt!
+  Tranches: [Tranche!]!
+}
+
 type depositAAEvent @entity {
   id: ID!
   tranche: Tranche!

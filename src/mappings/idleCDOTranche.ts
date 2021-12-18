@@ -1,9 +1,72 @@
-import { BigInt, Address, log } from "@graphprotocol/graph-ts";
+import { ADDRESS_ZERO } from './helpers';
+import { ethereum, BigInt, Address, log } from "@graphprotocol/graph-ts";
 import { Transfer } from "../../generated/templates/IdleCDOTranche/IdleCDOTranche";
 import { IdleCDO as IdleCDOContract } from "../../generated/templates/IdleCDO/IdleCDO"
-import { CDO, Tranche, depositAAEvent, depositBBEvent, withdrawAAEvent, withdrawBBEvent, transferAA, transferBB, TrancheInfo } from "../../generated/schema";
+import { CDO, Tranche, depositAAEvent, depositBBEvent, withdrawAAEvent, withdrawBBEvent, transferAA, transferBB, TrancheInfo, LastState } from "../../generated/schema";
 
-import { ADDRESS_ZERO } from './helpers';
+export function handleBlock(block: ethereum.Block): void {
+    let lastState = LastState.load('last');
+    if (lastState){
+        if (block.timestamp.minus(lastState.timeStamp).ge(BigInt.fromI32(3600))){
+            for (let i = lastState.CDOs.length - 1; i >= 0; i--) {
+                log.debug('Loading CDO Entity from address {}',[lastState.CDOs[i]]);
+                const CDOEntity = CDO.load(lastState.CDOs[i]);
+                if (CDOEntity){
+                    log.debug('Loading CDO Contract from address {}',[CDOEntity.id]);
+                    const CDOContract = IdleCDOContract.bind(Address.fromString(CDOEntity.id));
+                    if (CDOContract){
+                        const AATranche = Tranche.load(CDOEntity.AATrancheToken);
+
+                        if (AATranche && AATranche.totalSupply.gt(BigInt.fromI32(0))){
+                            const AATrancheVirtualPriceCall = CDOContract.try_virtualPrice(Address.fromString(AATranche.id));
+                            if (AATrancheVirtualPriceCall.reverted) {
+                                log.error('Virtual price call for CDO {} and Tranche {} got reverted.',[CDOEntity.id,AATranche.id]);
+                            } else {
+                                const AATrancheVirtualPrice = AATrancheVirtualPriceCall.value;
+                                const AATrancheContractValue = AATranche.totalSupply.times(AATrancheVirtualPrice).div(BigInt.fromString('1000000000000000000'));
+
+                                log.debug('AA Tranche Virtual Price: {}, Contract Value: {}, Timestamp: {}',[AATrancheVirtualPrice.toString(),AATrancheContractValue.toString(),block.timestamp.toString()]);
+
+                                const AATrancheInfo = new TrancheInfo(block.number.toString());
+                                AATrancheInfo.Tranche = AATranche.id;
+                                AATrancheInfo.timeStamp = block.timestamp;
+                                AATrancheInfo.totalSupply = AATranche.totalSupply;
+                                AATrancheInfo.virtualPrice = AATrancheVirtualPrice;
+                                AATrancheInfo.contractValue = AATrancheContractValue;
+                                AATrancheInfo.save();
+                            }
+                        }
+
+                        const BBTranche = Tranche.load(CDOEntity.BBTrancheToken);
+                        if (BBTranche && BBTranche.totalSupply.gt(BigInt.fromI32(0))){
+                            const BBTrancheVirtualPriceCall = CDOContract.try_virtualPrice(Address.fromString(BBTranche.id));
+                            if (BBTrancheVirtualPriceCall.reverted) {
+                                log.error('Virtual price call for CDO {} and Tranche {} got reverted.',[CDOEntity.id,BBTranche.id]);
+                            } else {
+                                const BBTrancheVirtualPrice = BBTrancheVirtualPriceCall.value;
+                                const BBTrancheContractValue = BBTranche.totalSupply.times(BBTrancheVirtualPrice).div(BigInt.fromString('1000000000000000000'));
+
+                                log.debug('BB Tranche Virtual Price: {}, Contract Value: {}, Timestamp: {}',[BBTrancheVirtualPrice.toString(),BBTrancheContractValue.toString(),block.timestamp.toString()]);
+
+                                const BBTrancheInfo = new TrancheInfo(block.number.toString());
+                                BBTrancheInfo.Tranche = BBTranche.id;
+                                BBTrancheInfo.timeStamp = block.timestamp;
+                                BBTrancheInfo.totalSupply = BBTranche.totalSupply;
+                                BBTrancheInfo.virtualPrice = BBTrancheVirtualPrice;
+                                BBTrancheInfo.contractValue = BBTrancheContractValue;
+                                BBTrancheInfo.save();
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Save new lastState
+            lastState.timeStamp = block.timestamp;
+            lastState.save();
+        }
+    }
+}
 
 export function handleTransfer(event: Transfer): void {
     let fromAddress = event.params.from;
@@ -69,7 +132,7 @@ export function handleTransfer(event: Transfer): void {
             }
         }
         tranche.save();
-
+        /*
         // Insert Tranche Info point
         const CDOEntity = CDO.load(tranche.CDO);
         log.debug('Loaded CDO Entity from address {}',[tranche.CDO]);
@@ -96,6 +159,6 @@ export function handleTransfer(event: Transfer): void {
                 }
             }
         }
-
+        */
     }
 }

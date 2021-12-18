@@ -40,6 +40,7 @@ templates:
       entities:
         - CDO
         - Tranche
+        - LastState
       abis:
         - name: IdleCDO
           file: ./abis/IdleCDO.json
@@ -56,17 +57,21 @@ templates:
       entities:
         - CDO
         - Tranche
+        - LastState
+        - transferAA
+        - transferBB
+        - TrancheInfo
         - depositAAEvent
         - depositBBEvent
         - withdrawAAEvent
         - withdrawBBEvent
-        - transferAA
-        - transferBB
       abis:
-        - name: IdleCDOTranche
-          file: ./abis/IdleCDOTranche.json
         - name: IdleCDO
           file: ./abis/IdleCDO.json
+        - name: IdleCDOTranche
+          file: ./abis/IdleCDOTranche.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
+      blockHandlers:
+        - handler: handleBlock

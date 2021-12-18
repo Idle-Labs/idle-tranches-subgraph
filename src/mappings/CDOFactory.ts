@@ -1,15 +1,19 @@
 import { CDODeployed } from "../../generated/CDOFactory/CDOFactory"
 import { IdleCDO, IdleCDOTranche } from "../../generated/templates"
 import { Address, BigInt, DataSourceContext, log } from "@graphprotocol/graph-ts"
-import { CDODeployedEvent, CDO, Tranche, TrancheInfo } from "../../generated/schema"
+import { CDODeployedEvent, CDO, Tranche, TrancheInfo, LastState } from "../../generated/schema"
 import { IdleCDO as IdleCDOContract } from "../../generated/templates/IdleCDO/IdleCDO"
 
 export function handleCDODeployed(event: CDODeployed): void {
   let entity = CDODeployedEvent.load(event.transaction.hash.toHex())
-
   let CDOAddress = event.params.proxy;
 
-  if (entity == null) {
+  if (entity === null) {
+    let lastState = LastState.load('last');
+    if (lastState === null){
+        lastState = new LastState('last');
+    }
+
     entity = new CDODeployedEvent(event.transaction.from.toHex());
     let CDOContract = IdleCDOContract.bind(CDOAddress);
 
@@ -64,6 +68,18 @@ export function handleCDODeployed(event: CDODeployed): void {
     TrancheInfoBB.virtualPrice = BBTrancheVirtualPrice;
     TrancheInfoBB.save();
 
+    // Insert LastState
+    lastState.timeStamp = event.block.timestamp;
+    let cdos = lastState.CDOs;
+    let tranches = lastState.Tranches;
+    cdos.push(CDOEntity.id);
+    tranches.push(AATranche.id);
+    tranches.push(BBTranche.id);
+    lastState.CDOs = cdos;
+    lastState.Tranches = tranches;
+    lastState.save();
+
+    // Insert new templates
     context.setBytes("CDO", CDOAddress)
     context.setBytes("AATranche", AATrancheAddress)
     context.setBytes("BBTranche", BBTrancheAddress)
