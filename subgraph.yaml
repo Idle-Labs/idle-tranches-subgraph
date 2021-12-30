@@ -24,6 +24,8 @@ dataSources:
       eventHandlers:
         - event: CDODeployed(address)
           handler: handleCDODeployed
+      blockHandlers:
+        - handler: handleBlock
       file: ./src/mappings/CDOFactory.ts
   
 templates:
