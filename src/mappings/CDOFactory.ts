@@ -39,7 +39,6 @@ export function handleCDODeployed(event: CDODeployed): void {
     let AATranche = new Tranche(AATrancheAddress.toHexString());
     AATranche.type = "AATranche";
     AATranche.CDO = CDOEntity.id;
-    AATranche.totalSupply = BigInt.fromI32(0);
     AATranche.save();
 
     // Insert AA Tranche Info point
@@ -55,7 +54,6 @@ export function handleCDODeployed(event: CDODeployed): void {
     let BBTranche = new Tranche(BBTrancheAddress.toHexString());
     BBTranche.type = "BBTranche";
     BBTranche.CDO = CDOEntity.id;
-    BBTranche.totalSupply = BigInt.fromI32(0);
     BBTranche.save();
 
     // Insert AA Tranche Info point
@@ -121,15 +119,15 @@ export function handleBlock(block:ethereum.Block):void{
     let AATranche = new Tranche(AATrancheAddress.toHexString());
     AATranche.type = "AATranche";
     AATranche.CDO = CDOEntity.id;
-    AATranche.totalSupply = BigInt.fromI32(0);
     AATranche.save();
 
     // Insert AA Tranche Info point
     const AATrancheVirtualPrice = CDOContract.virtualPrice(AATrancheAddress);
-    const TrancheInfoAA = new TrancheInfo(block.number.toString());
+    const TrancheInfoAA = new TrancheInfo(AATranche.id+'_'+block.number.toString());
     TrancheInfoAA.Tranche = AATranche.id;
-    TrancheInfoAA.totalSupply = BigInt.fromI32(0);
+    TrancheInfoAA.blockNumber = block.number;
     TrancheInfoAA.timeStamp = block.timestamp;
+    TrancheInfoAA.totalSupply = BigInt.fromI32(0);
     TrancheInfoAA.contractValue = BigInt.fromI32(0);
     TrancheInfoAA.virtualPrice = AATrancheVirtualPrice;
     TrancheInfoAA.save();
@@ -137,16 +135,16 @@ export function handleBlock(block:ethereum.Block):void{
     let BBTranche = new Tranche(BBTrancheAddress.toHexString());
     BBTranche.type = "BBTranche";
     BBTranche.CDO = CDOEntity.id;
-    BBTranche.totalSupply = BigInt.fromI32(0);
     BBTranche.save();
 
     // Insert AA Tranche Info point
     const BBTrancheVirtualPrice = CDOContract.virtualPrice(BBTrancheAddress);
-    const TrancheInfoBB = new TrancheInfo(block.number.toString());
+    const TrancheInfoBB = new TrancheInfo(BBTranche.id+'_'+block.number.toString());
     TrancheInfoBB.Tranche = BBTranche.id;
+    TrancheInfoBB.blockNumber = block.number;
+    TrancheInfoBB.timeStamp = block.timestamp;
     TrancheInfoBB.totalSupply = BigInt.fromI32(0);
     TrancheInfoBB.contractValue = BigInt.fromI32(0);
-    TrancheInfoBB.timeStamp = block.timestamp;
     TrancheInfoBB.virtualPrice = BBTrancheVirtualPrice;
     TrancheInfoBB.save();
 

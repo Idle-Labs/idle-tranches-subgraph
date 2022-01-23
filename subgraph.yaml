@@ -68,6 +68,8 @@ templates:
         - withdrawAAEvent
         - withdrawBBEvent
       abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
         - name: IdleCDO
           file: ./abis/IdleCDO.json
         - name: IdleCDOTranche

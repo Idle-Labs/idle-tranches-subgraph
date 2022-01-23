@@ -22,14 +22,14 @@ type Tranche @entity {
   id: ID!
   type: TrancheType!
   CDO: CDO!
-
-  totalSupply: BigInt!
 }
 
 type TrancheInfo @entity {
   id: ID!
+  apr: BigInt!
   Tranche: Tranche!
   timeStamp: BigInt!
+  blockNumber: BigInt!
   totalSupply: BigInt!
   virtualPrice: BigInt!
   contractValue: BigInt!
@@ -44,6 +44,7 @@ type LastState @entity {
 
 type depositAAEvent @entity {
   id: ID!
+  blockNumber: BigInt!
   tranche: Tranche!
   amount: BigInt!
   sender: Bytes!
@@ -51,6 +52,7 @@ type depositAAEvent @entity {
 
 type depositBBEvent @entity {
   id: ID!
+  blockNumber: BigInt!
   tranche: Tranche!
   amount: BigInt!
   sender: Bytes!
@@ -58,6 +60,7 @@ type depositBBEvent @entity {
 
 type withdrawAAEvent @entity {
   id: ID!
+  blockNumber: BigInt!
   tranche: Tranche!
   amount: BigInt!
   sender: Bytes!
@@ -65,6 +68,7 @@ type withdrawAAEvent @entity {
 
 type withdrawBBEvent @entity {
   id: ID!
+  blockNumber: BigInt!
   tranche: Tranche!
   amount: BigInt!
   sender: Bytes!
@@ -72,6 +76,7 @@ type withdrawBBEvent @entity {
 
 type transferAA @entity {
   id: ID!
+  blockNumber: BigInt!
   tranche: Tranche!
   amount: BigInt!
   sender: Bytes!
@@ -82,6 +87,7 @@ type transferAA @entity {
 
 type transferBB @entity {
   id: ID!
+  blockNumber: BigInt!
   tranche: Tranche!
   amount: BigInt!
   sender: Bytes!
