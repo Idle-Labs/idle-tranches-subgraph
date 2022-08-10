@@ -1,0 +1,20 @@
+[
+  {
+    "Metric":"TVL of IdleCDO AA Tranche - wstETH measured in Wei",
+    "Method":"https://github.com/UMAprotocol/UMIPs/blob/master/Implementations/subgraph-query.md",
+    "Endpoint":"https://api.thegraph.com/subgraphs/name/samster91/idle-tranches",
+    "QueryString":"{trancheInfos(<PAGINATE>,orderBy:timeStamp,orderDirection:desc,where:{Tranche:\"0x2688fc68c4eac90d9e5e1b94776cf14eade8d877\",timeStamp_lte:<QUERY_DTS>,timeStamp_gte:<QUERY_DTS-92D>}){timeStamp,contractValue}}",
+    "CollectionKey":"trancheInfos",
+    "MetricKey":"contractValue",
+    "TimestampKey":"timeStamp"
+  },
+  {
+    "Metric":"TVL of IdleCDO BB Tranche - wstETH measured in Wei",
+    "Method":"https://github.com/UMAprotocol/UMIPs/blob/master/Implementations/subgraph-query.md",
+    "Endpoint":"https://api.thegraph.com/subgraphs/name/samster91/idle-tranches",
+    "QueryString":"{trancheInfos(<PAGINATE>,orderBy:timeStamp,orderDirection:desc,where:{Tranche:\"0x3a52fa30c33caf05faee0f9c5dfe5fd5fe8b3978\",timeStamp_lte:<QUERY_DTS>,timeStamp_gte:<QUERY_DTS-92D>}){timeStamp,contractValue}}",
+    "CollectionKey":"trancheInfos",
+    "MetricKey":"contractValue",
+    "TimestampKey":"timeStamp"
+  }
+]
