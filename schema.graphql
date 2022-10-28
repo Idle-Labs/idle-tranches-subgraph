@@ -95,3 +95,4 @@ type transferBB @entity {
   from: Bytes!
   to: Bytes!
 }
+

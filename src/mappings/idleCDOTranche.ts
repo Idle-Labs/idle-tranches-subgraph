@@ -3,7 +3,6 @@ import { ERC20 } from "../../generated/templates/IdleCDOTranche/ERC20";
 import { ethereum, BigInt, Address, log } from "@graphprotocol/graph-ts";
 import { Transfer } from "../../generated/templates/IdleCDOTranche/IdleCDOTranche";
 import { IdleCDO as IdleCDOContract } from "../../generated/templates/IdleCDO/IdleCDO";
-// import { UniswapV2Router } from "../../generated/templates/UniswapV2Router/UniswapV2Router";
 import { CDO, Tranche, depositAAEvent, depositBBEvent, withdrawAAEvent, withdrawBBEvent, transferAA, transferBB, TrancheInfo, LastState } from "../../generated/schema";
 
 export function handleBlock(block: ethereum.Block): void {
@@ -17,25 +16,6 @@ export function handleBlock(block: ethereum.Block): void {
           log.debug('Loading CDO Contract from address {}',[CDOEntity.id]);
           const CDOContract = IdleCDOContract.bind(Address.fromString(CDOEntity.id));
           if (CDOContract){
-            /*
-            const uniswapPath = [ADDRESS_DAI];
-            if (ADDRESS_WETH.toLowerCase() !== CDOEntity.underlyingToken.toLowerCase() ){
-              uniswapPath.push(ADDRESS_WETH);
-            }
-            uniswapPath.push(CDOEntity.underlyingToken);
-
-            const UniswapV2RouterContract = UniswapV2Router.bind(Address.fromString(ADDRESS_UNISWAP_ROUTER));
-            const UniswapRouterCall = UniswapV2RouterContract.try_getAmountsIn(['1000000000000000000', uniswapPath]);
-            let underlyingPrice = BigInt.fromString('1000000000000000000');
-            if (UniswapRouterCall.reverted) {
-              log.error('Uniswap Conversion Price call for Underlying {} got reverted.',[CDOEntity.underlyingToken]);
-            } else if (UniswapRouterCall.value) {
-              underlyingPrice = UniswapRouterCall.value[0];
-              log.debug('Got Uniswap Conversion Price for Underlying {}, Price: {}.',[CDOEntity.underlyingToken,underlyingPrice.toString()]);
-            } else {
-              log.error('Uniswap Conversion Price call for Underlying {} got null.',[CDOEntity.underlyingToken]);
-            }
-            */
 
             const AATranche = Tranche.load(CDOEntity.AATrancheToken);
             if (AATranche){
@@ -51,7 +31,13 @@ export function handleBlock(block: ethereum.Block): void {
                   } else {
                     const AATrancheTotalSupply = AATrancheTotalSupplyCall.value;
                     const AATrancheVirtualPrice = AATrancheVirtualPriceCall.value;
-                    const AATrancheApr = CDOContract.getApr(Address.fromString(AATranche.id));
+
+                    let AATrancheApr = BigInt.fromI32(0);
+                    const AATrancheAprCall = CDOContract.try_getApr(Address.fromString(AATranche.id));
+                    if (!AATrancheAprCall.reverted){
+                      AATrancheApr = AATrancheAprCall.value;
+                    }
+
                     const AATrancheContractValue = AATrancheTotalSupply.times(AATrancheVirtualPrice).div(BigInt.fromString('1000000000000000000'));
 
                     log.debug('AA Tranche {} - Total Supply: {}, Virtual Price: {}, Contract Value: {}, Apr: {}, Timestamp: {}',[AATranche.id,AATrancheTotalSupply.toString(),AATrancheVirtualPrice.toString(),AATrancheContractValue.toString(),AATrancheApr.toString(),block.timestamp.toString()]);
@@ -85,7 +71,13 @@ export function handleBlock(block: ethereum.Block): void {
                   } else {
                     const BBTrancheTotalSupply = BBTrancheTotalSupplyCall.value;
                     const BBTrancheVirtualPrice = BBTrancheVirtualPriceCall.value;
-                    const BBTrancheApr = CDOContract.getApr(Address.fromString(BBTranche.id));
+
+                    let BBTrancheApr = BigInt.fromI32(0);
+                    const BBTrancheAprCall = CDOContract.try_getApr(Address.fromString(BBTranche.id));
+                    if (!BBTrancheAprCall.reverted){
+                      BBTrancheApr = BBTrancheAprCall.value;
+                    }
+
                     const BBTrancheContractValue = BBTrancheTotalSupply.times(BBTrancheVirtualPrice).div(BigInt.fromString('1000000000000000000'));
 
                     log.debug('BB Tranche {} - Total Supply: {}, Virtual Price: {}, Contract Value: {}, Apr: {}, Timestamp: {}',[BBTranche.id,BBTrancheTotalSupply.toString(),BBTrancheVirtualPrice.toString(),BBTrancheContractValue.toString(),BBTrancheApr.toString(),block.timestamp.toString()]);
