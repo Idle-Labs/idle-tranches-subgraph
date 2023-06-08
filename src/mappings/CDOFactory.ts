@@ -46,6 +46,7 @@ export function handleCDODeployed(event: CDODeployed): void {
     const AATrancheVirtualPrice = CDOContract.virtualPrice(AATrancheAddress);
     const TrancheInfoAA = new TrancheInfo(event.block.number.toString());
     TrancheInfoAA.Tranche = AATranche.id;
+    TrancheInfoAA.blockNumber = event.block.number;
     TrancheInfoAA.totalSupply = BigInt.fromI32(0);
     TrancheInfoAA.timeStamp = event.block.timestamp;
     TrancheInfoAA.contractValue = BigInt.fromI32(0);
@@ -60,6 +61,7 @@ export function handleCDODeployed(event: CDODeployed): void {
     // Insert AA Tranche Info point
     const BBTrancheVirtualPrice = CDOContract.virtualPrice(BBTrancheAddress);
     const TrancheInfoBB = new TrancheInfo(event.block.number.toString());
+    TrancheInfoBB.blockNumber = event.block.number;
     TrancheInfoBB.Tranche = BBTranche.id;
     TrancheInfoBB.totalSupply = BigInt.fromI32(0);
     TrancheInfoBB.contractValue = BigInt.fromI32(0);
