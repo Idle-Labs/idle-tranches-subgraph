@@ -96,3 +96,15 @@ type transferBB @entity {
   to: Bytes!
 }
 
+type TokenRebasedEvent @entity {
+  id: ID!
+  blockNumber: BigInt!
+  reportTimestamp: BigInt!
+  timeElapsed: BigInt!
+  preTotalShares: BigInt!
+  preTotalEther: BigInt!
+  postTotalShares: BigInt!
+  postTotalEther: BigInt!
+  sharesMintedAsFees: BigInt!
+  userAPR: BigInt!
+}

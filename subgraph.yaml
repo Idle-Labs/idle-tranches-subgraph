@@ -1,11 +1,11 @@
 specVersion: 0.0.4
 graft:
-  base: QmUFzxnroidD9sSxkhVqypu1BD4gAbanpVtUFVWabJLx2k
-  block: 15824384
+  base: QmWJZa74Hya6GQLkh1TnwbFZaEzWLFR2nn8ZmHwXBaU8ns
+  block: 17413504
 schema:
   file: ./schema.graphql
 features:
-    - grafting
+  - grafting
 dataSources:
   - kind: ethereum/contract
     name: CDOFactory
@@ -32,7 +32,27 @@ dataSources:
       blockHandlers:
         - handler: handleBlock
       file: ./src/mappings/CDOFactory.ts
-  
+  - kind: ethereum/contract
+    name: lido
+    network: mainnet # Replace with the desired network
+    source:
+      abi: LidoContract
+      address: "0xae7ab96520de3a18e5e111b5eaab095312d7fe84"
+      startBlock: 17258043
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - TokenRebasedEvent
+      abis:
+        - name: LidoContract
+          file: ./abis/LidoContract.json
+      eventHandlers:
+        - event: TokenRebased(indexed uint256,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleTokenRebased
+      file: ./src/mappings/LidoContract.ts
+
 templates:
   - kind: ethereum/contract
     name: IdleCDO

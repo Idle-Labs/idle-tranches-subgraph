@@ -1,21 +1,38 @@
-import { ADDRESS_ZERO } from './helpers';
+import { ADDRESS_ZERO, ADDRESS_STETH_CDO } from './helpers';
 import { ERC20 } from "../../generated/templates/IdleCDOTranche/ERC20";
 import { ethereum, BigInt, Address, log } from "@graphprotocol/graph-ts";
 import { Transfer } from "../../generated/templates/IdleCDOTranche/IdleCDOTranche";
 import { IdleCDO as IdleCDOContract } from "../../generated/templates/IdleCDO/IdleCDO";
-import { CDO, Tranche, depositAAEvent, depositBBEvent, withdrawAAEvent, withdrawBBEvent, transferAA, transferBB, TrancheInfo, LastState } from "../../generated/schema";
+import { TokenRebasedEvent, CDO, Tranche, depositAAEvent, depositBBEvent, withdrawAAEvent, withdrawBBEvent, transferAA, transferBB, TrancheInfo, LastState } from "../../generated/schema";
 
 export function handleBlock(block: ethereum.Block): void {
   let lastState = LastState.load('last');
   if (lastState){
     if (block.timestamp.minus(lastState.timeStamp).ge(BigInt.fromI32(3600))){
       for (let i = lastState.CDOs.length - 1; i >= 0; i--) {
-        log.debug('Loading CDO Entity from address {}',[lastState.CDOs[i]]);
+        // log.debug('Loading CDO Entity from address {}',[lastState.CDOs[i]]);
         const CDOEntity = CDO.load(lastState.CDOs[i]);
         if (CDOEntity){
           log.debug('Loading CDO Contract from address {}',[CDOEntity.id]);
           const CDOContract = IdleCDOContract.bind(Address.fromString(CDOEntity.id));
           if (CDOContract){
+
+            // Load token rebased event for stETH CDO
+            let tokenRebasedEvent = TokenRebasedEvent.load('last');
+
+            let FULL_ALLOC = BigInt.fromString('100000');
+            let currentAARatio = BigInt.fromString('50000');
+            let trancheAPRSplitRatio = BigInt.fromString('50000');
+
+            const trancheAPRSplitRatioCall = CDOContract.try_trancheAPRSplitRatio();
+            if (!trancheAPRSplitRatioCall.reverted){
+              trancheAPRSplitRatio = trancheAPRSplitRatioCall.value;
+            }
+
+            const currentAARatioCall = CDOContract.try_getCurrentAARatio();
+            if (!currentAARatioCall.reverted){
+              currentAARatio = currentAARatioCall.value;
+            }
 
             const AATranche = Tranche.load(CDOEntity.AATrancheToken);
             if (AATranche){
@@ -34,13 +51,18 @@ export function handleBlock(block: ethereum.Block): void {
 
                     let AATrancheApr = BigInt.fromI32(0);
                     const AATrancheAprCall = CDOContract.try_getApr(Address.fromString(AATranche.id));
-                    if (!AATrancheAprCall.reverted){
+                    if (!AATrancheAprCall.reverted && AATrancheAprCall.value !== null){
                       AATrancheApr = AATrancheAprCall.value;
                     }
 
                     const AATrancheContractValue = AATrancheTotalSupply.times(AATrancheVirtualPrice).div(BigInt.fromString('1000000000000000000'));
 
-                    log.debug('AA Tranche {} - Total Supply: {}, Virtual Price: {}, Contract Value: {}, Apr: {}, Timestamp: {}',[AATranche.id,AATrancheTotalSupply.toString(),AATrancheVirtualPrice.toString(),AATrancheContractValue.toString(),AATrancheApr.toString(),block.timestamp.toString()]);
+                    log.debug('AA Tranche {}, CDO: {} - Timestamp: {}, Total Supply: {}, Virtual Price: {}, Contract Value: {}, Apr: {}',[AATranche.id,CDOEntity.id,block.timestamp.toString(),AATrancheTotalSupply.toString(),AATrancheVirtualPrice.toString(),AATrancheContractValue.toString(),AATrancheApr.toString()]);
+
+                    if (tokenRebasedEvent && CDOEntity.id == ADDRESS_STETH_CDO) {
+                      AATrancheApr = tokenRebasedEvent.userAPR.times(trancheAPRSplitRatio).div(currentAARatio);
+                      log.debug('stETH AA APR - trancheAPRSplitRatio: {}, currentAARatio: {}, APR: {}', [trancheAPRSplitRatio.toString(), currentAARatio.toString(), AATrancheApr.toString()]);
+                    }
 
                     const AATrancheInfo = new TrancheInfo(AATranche.id+'_'+block.number.toString());
                     AATrancheInfo.apr = AATrancheApr;
@@ -74,13 +96,18 @@ export function handleBlock(block: ethereum.Block): void {
 
                     let BBTrancheApr = BigInt.fromI32(0);
                     const BBTrancheAprCall = CDOContract.try_getApr(Address.fromString(BBTranche.id));
-                    if (!BBTrancheAprCall.reverted){
+                    if (!BBTrancheAprCall.reverted && BBTrancheAprCall.value !== null){
                       BBTrancheApr = BBTrancheAprCall.value;
                     }
 
                     const BBTrancheContractValue = BBTrancheTotalSupply.times(BBTrancheVirtualPrice).div(BigInt.fromString('1000000000000000000'));
 
-                    log.debug('BB Tranche {} - Total Supply: {}, Virtual Price: {}, Contract Value: {}, Apr: {}, Timestamp: {}',[BBTranche.id,BBTrancheTotalSupply.toString(),BBTrancheVirtualPrice.toString(),BBTrancheContractValue.toString(),BBTrancheApr.toString(),block.timestamp.toString()]);
+                    log.debug('BB Tranche {}, CDO: {} - Timestamp: {}, Total Supply: {}, Virtual Price: {}, Contract Value: {}, Apr: {}',[BBTranche.id,CDOEntity.id,block.timestamp.toString(),BBTrancheTotalSupply.toString(),BBTrancheVirtualPrice.toString(),BBTrancheContractValue.toString(),BBTrancheApr.toString()]);
+
+                    if (tokenRebasedEvent && CDOEntity.id == ADDRESS_STETH_CDO) {
+                      BBTrancheApr = tokenRebasedEvent.userAPR.times(FULL_ALLOC.minus(trancheAPRSplitRatio)).div(FULL_ALLOC.minus(currentAARatio));
+                      log.debug('stETH BB APR - BlockNumber: {}, trancheAPRSplitRatio: {}, currentBBRatio: {}, APR: {}', [block.number.toString(), FULL_ALLOC.minus(trancheAPRSplitRatio).toString(), FULL_ALLOC.minus(currentAARatio).toString(), BBTrancheApr.toString()]);
+                    }
 
                     const BBTrancheInfo = new TrancheInfo(BBTranche.id+'_'+block.number.toString());
                     BBTrancheInfo.apr = BBTrancheApr;
