@@ -26,7 +26,7 @@ type Tranche @entity {
 
 type TrancheInfo @entity {
   id: ID!
-  apr: BigInt!
+  apr: BigInt
   Tranche: Tranche!
   timeStamp: BigInt!
   blockNumber: BigInt!
