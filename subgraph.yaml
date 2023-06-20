@@ -1,7 +1,7 @@
 specVersion: 0.0.4
 graft:
-  base: QmWJZa74Hya6GQLkh1TnwbFZaEzWLFR2nn8ZmHwXBaU8ns
-  block: 17413504
+  base: QmVYcnUbqpPMDLjCtoX1QnuKk1QVanL9bgtLBsTeSAvTuL
+  block: 17519659
 schema:
   file: ./schema.graphql
 features:
